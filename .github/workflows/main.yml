@@ -37,6 +37,7 @@ jobs:
       - name: Build PeLib
         shell: msys2 {0}
         run: |
+          mkdir -p PeLib/lib PeLib/bin
           cd PeLib/source
           make -f makefile.g++
 
