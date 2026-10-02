@@ -1,0 +1,54 @@
+name: Build Pythia
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Pythia
+        uses: actions/checkout@v4
+        with:
+          path: Pythia
+
+      # Pythia depends on PeLib (same author, sporst/PeLib) to compile.
+      - name: Checkout PeLib dependency
+        uses: actions/checkout@v4
+        with:
+          repository: sporst/PeLib
+          path: PeLib
+
+      - name: Set up MinGW
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: >-
+            mingw-w64-i686-gcc
+            mingw-w64-i686-make
+            make
+
+      - name: Build PeLib
+        shell: msys2 {0}
+        run: |
+          cd PeLib/source
+          make -f makefile.g++
+
+      - name: Build Pythia
+        shell: msys2 {0}
+        run: |
+          cd Pythia
+          g++ -std=gnu++98 -O2 -c *.cpp -I../PeLib/include
+          g++ -o pythia.exe *.o -L../PeLib/lib -lPeLib
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pythia-build
+          path: Pythia/pythia.exe
