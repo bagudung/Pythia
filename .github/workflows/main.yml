@@ -41,11 +41,17 @@ jobs:
           cd PeLib/source
           make -f makefile.g++
 
+      - name: Patch missing cstdlib include
+        shell: msys2 {0}
+        run: |
+          cd Pythia
+          grep -q '#include <cstdlib>' helpers.cpp || sed -i '1i #include <cstdlib>' helpers.cpp
+
       - name: Build Pythia
         shell: msys2 {0}
         run: |
           cd Pythia
-          g++ -std=gnu++98 -O2 -c *.cpp -I../PeLib/include
+          g++ -std=gnu++98 -O2 -c *.cpp -I../PeLib/source
           g++ -o pythia.exe *.o -L../PeLib/lib -lPeLib
 
       - name: Upload build artifact
